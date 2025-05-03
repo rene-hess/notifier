@@ -1,13 +1,14 @@
-urgency: "normal"
-icon: "/home/rene/programming/projects/notifier/icon_240x240.png"
+urgency: "normal" # default value
+# icon: "/absolute/path/to/icon.png" # default value
 
 events:
   - time: "5s"
     message: "Message 1"
+    urgency: "normal"
   - time: "10s"
     message: "Message 2"
     urgency: "critical"
-    icon: "/home/rene/programming/projects/notifier/icon.png"
+    # icon: "/override/icon/from/above/.png"
   # - time: "22:05"
   #   message: "Message 3"
   #   urgency: "critical"

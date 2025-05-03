@@ -40,7 +40,7 @@ func run() error {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer func() {
-		slog.Info("Stoping notifier")
+		slog.Info("Stopping notifier")
 		stop()
 	}()
 
