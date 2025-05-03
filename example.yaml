@@ -3,7 +3,10 @@ urgency: "normal"
 events:
   - time: "1m"
     message: "Message 1"
-  - time: "22:05"
+  - time: "2m"
     message: "Message 2"
     urgency: "critical"
+  # - time: "22:05"
+  #   message: "Message 3"
+  #   urgency: "critical"
 

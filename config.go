@@ -73,7 +73,7 @@ func parseConfig(now time.Time, input io.Reader) (Config, error) {
 
 func isValidUrgency(urgency Urgency) bool {
 	switch urgency {
-	case "low", "normal", "critical":
+	case low, normal, critical:
 		return true
 	default:
 		return false
