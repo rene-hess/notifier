@@ -1,11 +1,13 @@
 urgency: "normal"
+icon: "/home/rene/programming/projects/notifier/icon_240x240.png"
 
 events:
-  - time: "1m"
+  - time: "5s"
     message: "Message 1"
-  - time: "2m"
+  - time: "10s"
     message: "Message 2"
     urgency: "critical"
+    icon: "/home/rene/programming/projects/notifier/icon.png"
   # - time: "22:05"
   #   message: "Message 3"
   #   urgency: "critical"

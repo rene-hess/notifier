@@ -64,17 +64,29 @@ func notify(ctx context.Context, config Config) {
 			case <-timer.C:
 			}
 		}
-		args := []string{event.Message}
-		if event.Urgency != nil {
-			args = append([]string{"-u", string(*event.Urgency)}, args...)
-		} else {
-			args = append([]string{"-u", string(config.Urgency)}, args...)
+
+		args := []string{}
+
+		if event.Icon != "" {
+			args = append(args, "-i", event.Icon)
+		} else if config.Icon != "" {
+			args = append(args, "-i", config.Icon)
 		}
+
+		if event.Urgency != "" {
+			args = append(args, "-u", string(event.Urgency))
+		} else {
+			args = append(args, "-u", string(config.Urgency))
+		}
+
+		args = append(args, event.Message)
 		cmd := exec.Command("notify-send", args...)
 		err := cmd.Run()
 		if err != nil {
 			slog.Error("Error running notify-send", "error", err)
 		}
+
+		slog.Info("Notification sent", "message", event.Message, "time", event.Time)
 	}
 }
 

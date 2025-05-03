@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -19,17 +20,21 @@ const (
 )
 
 type Event struct {
-	TimeString string   `yaml:"time"`
-	Message    string   `yaml:"message"`
-	Urgency    *Urgency `yaml:"urgency,omitempty"`
+	TimeString string  `yaml:"time"`
+	Message    string  `yaml:"message"`
+	Urgency    Urgency `yaml:"urgency,omitempty"`
+	Icon       string  `yaml:"icon,omitempty"`
 
 	// Internal field for parsed time, not mapped to YAML
 	Time time.Time `yaml:"-"`
 }
 
 type Config struct {
-	Urgency Urgency `yaml:"urgency"`
-	Events  []Event `yaml:"events"`
+	// Default values for the events
+	Urgency Urgency `yaml:"urgency,omitempty"`
+	Icon    string  `yaml:"icon,omitempty"`
+
+	Events []Event `yaml:"events"`
 }
 
 func loadConfig(path string) (Config, error) {
@@ -53,6 +58,11 @@ func parseConfig(now time.Time, input io.Reader) (Config, error) {
 	decoder := yaml.NewDecoder(input)
 	if err := decoder.Decode(&config); err != nil {
 		return Config{}, fmt.Errorf("failed to decode yaml: %w", err)
+	}
+
+	// Set default urgency if not specified
+	if config.Urgency == "" {
+		config.Urgency = normal
 	}
 
 	err := validateConfig(config)
@@ -84,6 +94,11 @@ func validateConfig(config Config) error {
 	if !isValidUrgency(config.Urgency) {
 		return fmt.Errorf("invalid urgency: %s", config.Urgency)
 	}
+	if config.Icon != "" {
+		if err := pathValid(config.Icon); err != nil {
+			return fmt.Errorf("icon file does not exist: %s: %w", config.Icon, err)
+		}
+	}
 
 	if len(config.Events) == 0 {
 		return fmt.Errorf("no events found")
@@ -96,9 +111,26 @@ func validateConfig(config Config) error {
 		if event.Message == "" {
 			return fmt.Errorf("event message is required")
 		}
-		if event.Urgency != nil && !isValidUrgency(*event.Urgency) {
-			return fmt.Errorf("invalid urgency: %s", *event.Urgency)
+		if event.Urgency != "" && !isValidUrgency(event.Urgency) {
+			return fmt.Errorf("invalid urgency: %s", event.Urgency)
 		}
+		if event.Icon != "" {
+			if err := pathValid(event.Icon); err != nil {
+				return fmt.Errorf("icon file does not exist: %s: %w", event.Icon, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func pathValid(path string) error {
+	if !filepath.IsAbs(path) {
+		return fmt.Errorf("icon path must be absolute: %s", path)
+	}
+	_, err := os.Stat(path)
+	if err != nil {
+		return err
 	}
 
 	return nil
