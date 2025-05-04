@@ -55,14 +55,16 @@ func notify(ctx context.Context, config Config) {
 	config.Events = sortEvents(config.Events)
 	for _, event := range config.Events {
 		wait := time.Until(event.Time)
-		if wait > 0 {
-			timer := time.NewTimer(wait)
-			select {
-			case <-ctx.Done():
-				timer.Stop()
-				return
-			case <-timer.C:
-			}
+		if wait < 0 {
+			continue
+		}
+
+		timer := time.NewTimer(wait)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return
+		case <-timer.C:
 		}
 
 		args := []string{}
