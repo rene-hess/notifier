@@ -56,6 +56,7 @@ func loadConfig(path string) (Config, error) {
 func parseConfig(now time.Time, input io.Reader) (Config, error) {
 	var config Config
 	decoder := yaml.NewDecoder(input)
+	decoder.KnownFields(true)
 	if err := decoder.Decode(&config); err != nil {
 		return Config{}, fmt.Errorf("failed to decode yaml: %w", err)
 	}
@@ -154,6 +155,9 @@ func parseTimeString(now time.Time, timeStr string) (time.Time, error) {
 	d, err := time.ParseDuration(timeStr)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("invalid time string: %w", err)
+	}
+	if d < 0 {
+		return time.Time{}, fmt.Errorf("negative durations are not allowed")
 	}
 
 	return now.Add(d), nil

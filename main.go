@@ -56,6 +56,7 @@ func notify(ctx context.Context, config Config) {
 	for _, event := range config.Events {
 		wait := time.Until(event.Time)
 		if wait < 0 {
+			slog.Warn("Skipping past event", "message", event.Message, "time", event.Time)
 			continue
 		}
 
@@ -67,22 +68,8 @@ func notify(ctx context.Context, config Config) {
 		case <-timer.C:
 		}
 
-		args := []string{}
-
-		if event.Icon != "" {
-			args = append(args, "-i", event.Icon)
-		} else if config.Icon != "" {
-			args = append(args, "-i", config.Icon)
-		}
-
-		if event.Urgency != "" {
-			args = append(args, "-u", string(event.Urgency))
-		} else {
-			args = append(args, "-u", string(config.Urgency))
-		}
-
-		args = append(args, event.Message)
-		cmd := exec.Command("notify-send", args...)
+		args := notifyArgs(config, event)
+		cmd := exec.CommandContext(ctx, "notify-send", args...)
 		err := cmd.Run()
 		if err != nil {
 			slog.Error("Error running notify-send", "error", err)
@@ -92,8 +79,26 @@ func notify(ctx context.Context, config Config) {
 	}
 }
 
+func notifyArgs(config Config, event Event) []string {
+	args := []string{}
+
+	if event.Icon != "" {
+		args = append(args, "-i", event.Icon)
+	} else if config.Icon != "" {
+		args = append(args, "-i", config.Icon)
+	}
+
+	if event.Urgency != "" {
+		args = append(args, "-u", string(event.Urgency))
+	} else {
+		args = append(args, "-u", string(config.Urgency))
+	}
+
+	return append(args, "--", event.Message)
+}
+
 func sortEvents(events []Event) []Event {
-	sort.Slice(events, func(i, j int) bool {
+	sort.SliceStable(events, func(i, j int) bool {
 		return events[i].Time.Before(events[j].Time)
 	})
 	return events
